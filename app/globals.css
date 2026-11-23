@@ -1,26 +1,462 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --page: #f7f8fc;
+  --paper: #ffffff;
+  --line: #e6e8ef;
+  --line-strong: #e2e6ee;
+  --ink: #0f172a;
+  --body: #5c6b82;
+  --faint: #8b97ab;
+  --nav: #334155;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --pill: #e8eef9;
+  --pill-text: #1e3a8a;
+  --mark: #0b1220;
+  --error: #9f1239;
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-page: var(--page);
+  --color-paper: var(--paper);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-faint: var(--faint);
+  --color-nav: var(--nav);
+  --color-blue: var(--blue);
+  --color-blue-hover: var(--blue-hover);
+  --color-pill: var(--pill);
+  --color-pill-text: var(--pill-text);
+  --color-mark: var(--mark);
+  --color-error: var(--error);
+  --font-sans: var(--font-jakarta);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+html.dark {
+  color-scheme: dark;
+  --page: #0b1220;
+  --paper: #121a2b;
+  --line: #243044;
+  --line-strong: #314158;
+  --ink: #f8fafc;
+  --body: #b7c3d6;
+  --faint: #8b9bb3;
+  --nav: #d5deea;
+  --blue: #3b82f6;
+  --blue-hover: #60a5fa;
+  --pill: #1c2a44;
+  --pill-text: #dbeafe;
+  --mark: #0b1220;
+}
+
+html.dark body.page-wash {
+  background-color: #0b1220;
+  background-image: radial-gradient(120% 80% at 50% 0%, #172033 0%, #10192b 46%, #0b1220 100%);
+}
+
+html.dark .hero-sky {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(11, 18, 32, 0.94) 0%,
+      rgba(11, 18, 32, 0.72) 28%,
+      rgba(11, 18, 32, 0.18) 52%,
+      rgba(11, 18, 32, 0) 66%
+    ),
+    url("/hero-daylight.jpg") 78% center / cover no-repeat;
+}
+
+html.dark .hero-fade {
+  background: linear-gradient(to bottom, rgba(11, 18, 32, 0), #0b1220);
+}
+
+html.dark .hero-band {
+  background: #0b1220;
+}
+
+.inbox-well {
+  background: #eef3f9;
+}
+
+html.dark .inbox-well {
+  background: #10192b;
+}
+
+html.dark body {
+  background: #0b1220;
+}
+
+html.dark ::selection {
+  background: #1e3a8a;
+}
+
+html.dark .btn-secondary {
+  background: transparent;
+  color: #f8fafc;
+  border-color: #8b9bb3;
+}
+
+html.dark .btn-secondary:hover {
+  background: #1c2a44;
+}
+
+html.dark .logo-mark rect {
+  fill: #172033;
+  stroke: #7eb6ff;
+  stroke-width: 1.25;
+}
+
+.product-screen {
+  --page: #f7f8fc;
+  --paper: #ffffff;
+  --line: #e6e8ef;
+  --line-strong: #e2e6ee;
+  --ink: #0f172a;
+  --body: #5c6b82;
+  --faint: #8b97ab;
+  --nav: #334155;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --pill: #e8eef9;
+  --pill-text: #1e3a8a;
+  color: #5c6b82;
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: var(--body);
+  overflow-x: clip;
+}
+
+body.page-wash {
+  background-color: #f7f8fc;
+  background-image: radial-gradient(120% 80% at 50% 0%, #f7f8fc 0%, #e7eef8 48%, #d9e4fb 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: #d9e4fb;
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+a.text-link {
+  color: var(--blue);
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+
+a.text-link:hover {
+  text-decoration: underline;
+}
+
+.plan-card {
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-down-center {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sky-drift {
+  0% {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.12) translate3d(-1.6%, -0.8%, 0);
+  }
+  100% {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pane-in {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes row-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tool-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.tool-float {
+  animation: tool-float 6s ease-in-out infinite;
+}
+
+.hero-band {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100dvh - 72px);
+  overflow: hidden;
+  background: #e7eef8;
+}
+
+.hero-sky-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-sky {
+  position: absolute;
+  inset: -8%;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(247, 248, 252, 0.9) 0%,
+      rgba(247, 248, 252, 0.62) 24%,
+      rgba(247, 248, 252, 0.12) 46%,
+      rgba(247, 248, 252, 0) 62%
+    ),
+    url("/hero-daylight.jpg") 78% center / cover no-repeat;
+  transform-origin: 68% 42%;
+}
+
+.hero-fade {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  height: 120px;
+  background: linear-gradient(to bottom, rgba(247, 248, 252, 0), var(--page));
+  pointer-events: none;
+}
+
+.pane-in {
+  animation: pane-in 0.7s ease-in-out both;
+}
+
+.row-in {
+  animation: row-in 0.55s ease-in-out both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: fade-in 1.2s ease-in-out both, slide-up 1.2s ease-in-out both;
+  }
+
+  .media-settle {
+    animation: fade-in 1.2s ease-in-out 0.2s both, scale-down-center 1.2s ease-in-out 0.2s both;
+  }
+
+  .hero-sky-clip {
+    animation: fade-in 1.2s ease-in-out both, scale-down-center 1.4s ease-in-out both;
+  }
+
+  .hero-sky {
+    animation: sky-drift 22s ease-in-out 1.2s infinite;
+  }
+
+  .rise-wait {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+
+  .rise-in {
+    animation: fade-in 1.2s ease-in-out both, slide-up 1.2s ease-in-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .media-settle,
+  .hero-sky-clip,
+  .hero-sky,
+  .pane-in,
+  .row-in,
+  .tool-float {
+    animation: none;
+  }
+
+  .rise-wait {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ssload {
+  display: none;
+}
+
+html.intro-on .ssload {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+}
+
+html.intro-on body {
+  overflow: hidden;
+}
+
+html.intro-on #nav-logo {
+  visibility: hidden;
+}
+
+.ssload-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 50% 45%, #f7f8fc 0%, #e7eef8 55%, #d9e4fb 100%);
+  will-change: transform;
+}
+
+.ssload-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: min(92vw, 760px);
+}
+
+.ssload-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  transform: scale(3.15);
+  transform-origin: center center;
+}
+
+@media (max-width: 699px) {
+  .ssload-lockup {
+    transform: scale(2.15);
+  }
+}
+
+.ssload-sheen {
+  position: absolute;
+  inset: -20% -8%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.95) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  mix-blend-mode: soft-light;
+}
+
+.ssload-tag {
+  position: absolute;
+  top: calc(100% + clamp(14px, 3vw, 30px));
+  right: 0;
+  left: 0;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #5c6b82;
+  opacity: 0;
+}
+
+.ssload-tag em {
+  color: #2563eb;
+  font-size: 1.15em;
+  font-style: normal;
+}
+
+.ssload-bar {
+  position: absolute;
+  bottom: max(40px, 6vh);
+  left: 50%;
+  width: 140px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(37, 99, 235, 0.12);
+  transform: translateX(-50%);
+}
+
+.ssload-bar span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.ssload-skip {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  border-radius: 99px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b97ab;
+}
+
+.ssload-skip:hover {
+  color: #2563eb;
 }
