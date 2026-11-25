@@ -1,3 +1,4 @@
+import { openWorkspace } from "@/lib/onboarding";
 import { findByRazorpayOrderId, updateOrder } from "@/lib/orders";
 import { fetchPayment, verifyWebhookSignature } from "@/lib/razorpay";
 
@@ -29,11 +30,12 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   }
   const method = live.method === "card" || live.method === "upi" || live.method === "netbanking" ? live.method : order.paymentMethod;
-  await updateOrder(order.id, {
+  const saved = await updateOrder(order.id, {
     status: "paid",
     razorpayPaymentId: live.id,
     paymentMethod: method,
     paidAt: new Date().toISOString(),
   });
+  if (saved) await openWorkspace(saved);
   return Response.json({ ok: true });
 }

@@ -42,3 +42,6 @@ next-env.d.ts
 
 # checkout requests (company details)
 /data
+
+# local Postman collection (contains the owner login)
+/postman

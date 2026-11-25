@@ -1,3 +1,4 @@
+import { openWorkspace } from "@/lib/onboarding";
 import { getOrder, updateOrder } from "@/lib/orders";
 import { fetchPayment, verifyCheckoutSignature } from "@/lib/razorpay";
 
@@ -37,6 +38,7 @@ export async function POST(request: Request, context: Context) {
     paymentMethod: method,
     paidAt: new Date().toISOString(),
   });
+  if (saved) await openWorkspace(saved);
   return Response.json({
     id: saved?.id,
     status: "paid",
