@@ -191,29 +191,6 @@ export async function configureStalwartDKIM(
 }
 
 /**
- * Send email via Stalwart SMTP
- */
-export async function sendStalwartEmail(params: {
-  from: string;
-  to: string[];
-  subject: string;
-  text?: string;
-  html?: string;
-}): Promise<StalwartResponse<{ id: string }>> {
-  if (!stalwartConfigured()) {
-    return { success: false, error: "Stalwart not configured" };
-  }
-
-  return stalwartRequest<{ id: string }>("POST", "/api/v1/send", {
-    from: params.from,
-    to: params.to,
-    subject: params.subject,
-    text: params.text,
-    html: params.html,
-  });
-}
-
-/**
  * Test Stalwart connection
  */
 export async function testStalwartConnection(): Promise<StalwartResponse<{ status: string }>> {

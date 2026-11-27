@@ -102,9 +102,9 @@ async function readBody(request: Request) {
 
 async function parsedEmail(request: Request) {
   const parsed = await readBody(request);
-  if ("error" in parsed) return parsed;
+  if ("error" in parsed && parsed.error) return parsed;
   const owner = await companyAdmin(request);
-  if ("error" in owner) return { error: Response.json(await owner.error.json(), { status: owner.error.status }) };
+  if ("error" in owner && owner.error) return { error: Response.json(await owner.error.json(), { status: owner.error.status }) };
   const email = parseEmail(parsed.body.email);
   if (!email) return { error: Response.json({ success: false, message: "email must be a valid mailbox address" }, { status: 400 }) };
   return { email, company: owner.company };
@@ -112,7 +112,7 @@ async function parsedEmail(request: Request) {
 
 export async function createMailbox(request: Request) {
   const input = await parsedEmail(request);
-  if ("error" in input) return { status: input.error.status, body: await input.error.json() };
+  if ("error" in input && input.error) return { status: input.error.status, body: await input.error.json() };
   const { email, company } = input;
   const limit = company.mailbox_limit;
   if (!Number.isInteger(limit) || !limit || limit <= 0) {
@@ -172,7 +172,7 @@ export async function createMailbox(request: Request) {
 
 export async function deleteMailbox(request: Request) {
   const input = await parsedEmail(request);
-  if ("error" in input) return { status: input.error.status, body: await input.error.json() };
+  if ("error" in input && input.error) return { status: input.error.status, body: await input.error.json() };
   const pool = getPool();
   const [rows] = await pool.query<MailboxRow[]>("SELECT email FROM mailboxes WHERE company_id = ? AND email = ? LIMIT 1", [
     input.company.id,
@@ -196,7 +196,7 @@ export async function deleteMailbox(request: Request) {
 
 export async function resetMailboxPassword(request: Request) {
   const input = await parsedEmail(request);
-  if ("error" in input) return { status: input.error.status, body: await input.error.json() };
+  if ("error" in input && input.error) return { status: input.error.status, body: await input.error.json() };
   const pool = getPool();
   const [rows] = await pool.query<MailboxRow[]>("SELECT email FROM mailboxes WHERE company_id = ? AND email = ? LIMIT 1", [
     input.company.id,

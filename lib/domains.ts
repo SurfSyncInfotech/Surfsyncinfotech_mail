@@ -132,7 +132,7 @@ export async function readDomainBody(request: Request) {
 
 export async function addDomain(request: Request, body: Record<string, unknown>) {
   const owner = await companyAdmin(request);
-  if ("error" in owner) return { status: owner.error.status, body: await owner.error.json() };
+  if ("error" in owner && owner.error) return { status: owner.error.status, body: await owner.error.json() };
   const domain = normalizeDomain(body.domain);
   if (!domain) return { status: 400, body: { success: false, message: "domain must be a valid domain name" } };
   const pool = getPool();
@@ -180,7 +180,7 @@ async function lookupDns(domain: string, dns: DnsBundle) {
 
 export async function verifyDomain(request: Request, body: Record<string, unknown>) {
   const owner = await companyAdmin(request);
-  if ("error" in owner) return { status: owner.error.status, body: await owner.error.json() };
+  if ("error" in owner && owner.error) return { status: owner.error.status, body: await owner.error.json() };
   const domain = normalizeDomain(body.domain);
   if (!domain) return { status: 400, body: { success: false, message: "domain must be a valid domain name" } };
   const pool = getPool();

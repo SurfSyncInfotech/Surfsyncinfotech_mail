@@ -3,6 +3,7 @@ import type { RowDataPacket } from "mysql2";
 import { prepareAuth } from "@/lib/auth";
 import { prepareCompanies } from "@/lib/companies";
 import { getPool } from "@/lib/db";
+import { getStalwartSmtpConfig, sendStalwartSmtpEmail, type StalwartSmtpConfig } from "@/lib/stalwart-smtp";
 import { readAuthToken } from "@/lib/token";
 
 const FOLDERS = ["inbox", "sent", "drafts", "trash", "spam"] as const;
@@ -143,9 +144,9 @@ function capBytes(gb: number) {
 
 export async function listMail(request: Request) {
   const owner = await employeeMailbox(request);
-  if ("error" in owner) return { status: owner.error.status, body: await owner.error.json() };
+  if ("error" in owner && owner.error) return { status: owner.error.status, body: await owner.error.json() };
   const parsed = await readBody(request);
-  if ("error" in parsed) return { status: parsed.error.status, body: await parsed.error.json() };
+  if ("error" in parsed && parsed.error) return { status: parsed.error.status, body: await parsed.error.json() };
   const folder = clean(parsed.body.folder, 20).toLowerCase() || "inbox";
   if (!FOLDERS.includes(folder as Folder)) {
     return { status: 400, body: { success: false, message: "folder must be inbox, sent, drafts, trash, or spam" } };
@@ -160,9 +161,9 @@ export async function listMail(request: Request) {
 
 export async function readMail(request: Request) {
   const owner = await employeeMailbox(request);
-  if ("error" in owner) return { status: owner.error.status, body: await owner.error.json() };
+  if ("error" in owner && owner.error) return { status: owner.error.status, body: await owner.error.json() };
   const parsed = await readBody(request);
-  if ("error" in parsed) return { status: parsed.error.status, body: await parsed.error.json() };
+  if ("error" in parsed && parsed.error) return { status: parsed.error.status, body: await parsed.error.json() };
   const messageId = clean(parsed.body.messageId, 80);
   const [rows] = await getPool().query<MessageRow[]>(
     "SELECT id, mailbox, folder, from_email, to_email, subject, body, created_at FROM messages WHERE id = ? AND mailbox = ? LIMIT 1",
@@ -180,9 +181,9 @@ async function companyUsedBytes(companyId: string) {
 
 export async function sendMail(request: Request) {
   const owner = await employeeMailbox(request);
-  if ("error" in owner) return { status: owner.error.status, body: await owner.error.json() };
+  if ("error" in owner && owner.error) return { status: owner.error.status, body: await owner.error.json() };
   const parsed = await readBody(request);
-  if ("error" in parsed) return { status: parsed.error.status, body: await parsed.error.json() };
+  if ("error" in parsed && parsed.error) return { status: parsed.error.status, body: await parsed.error.json() };
   const to = clean(parsed.body.to, 160).toLowerCase();
   const subject = clean(parsed.body.subject, 200);
   const text = clean(parsed.body.body, 100000);
@@ -214,6 +215,18 @@ export async function sendMail(request: Request) {
     ? await pool.query<CompanyRow[]>("SELECT id, status, storage_gb, mailbox_limit FROM companies WHERE id = ? LIMIT 1", [local.company_id])
     : [[] as CompanyRow[]];
   const localCompany = localCompanyRows[0];
+  let smtpConfig: StalwartSmtpConfig | null = null;
+  if (!local) {
+    try {
+      smtpConfig = getStalwartSmtpConfig();
+    } catch (error) {
+      console.error("Invalid Stalwart SMTP configuration:", error);
+      return {
+        status: 503,
+        body: { success: false, message: "Stalwart SMTP is only partially or incorrectly configured." },
+      };
+    }
+  }
   const now = new Date();
   const sentId = `msg_${randomBytes(8).toString("hex")}`;
   let inboxId: string | null = null;
@@ -265,14 +278,52 @@ export async function sendMail(request: Request) {
     connection.release();
   }
 
+  const sent = {
+    messageId: sentId,
+    folder: "sent",
+    from: owner.mailbox.email,
+    to,
+    subject,
+    createdAt: now.toISOString(),
+  };
+  if (smtpConfig) {
+    try {
+      await sendStalwartSmtpEmail(smtpConfig, {
+        from: owner.mailbox.email,
+        to,
+        subject,
+        text,
+      });
+    } catch (error) {
+      console.error("Stalwart SMTP submission failed:", error);
+      return {
+        status: 502,
+        body: {
+          success: false,
+          message: "Message was saved in Sent, but Stalwart did not accept it. Check mail-server logs before retrying.",
+          sent,
+          delivered: false,
+          inboxMessageId: null,
+        },
+      };
+    }
+  }
+
   return {
     status: 201,
     body: {
       success: true,
-      message: inboxId ? "Message sent" : local ? "Message saved in Sent. The recipient mailbox could not store it." : "Message saved in Sent. External delivery waits for the mail server.",
-      sent: { messageId: sentId, folder: "sent", from: owner.mailbox.email, to, subject, createdAt: now.toISOString() },
+      message: smtpConfig
+        ? "Message accepted by Stalwart for delivery."
+        : inboxId
+          ? "Message sent"
+          : local
+            ? "Message saved in Sent. The recipient mailbox could not store it."
+            : "Message saved in Sent. External delivery waits for the mail server.",
+      sent,
       delivered: Boolean(local && inboxId),
       inboxMessageId: inboxId,
+      ...(smtpConfig ? { acceptedByMailServer: true } : {}),
     },
   };
 }

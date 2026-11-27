@@ -75,6 +75,7 @@ export function Intro() {
       );
 
     function flyToNav() {
+      if (!logo || !nav) return;
       const from = logo.getBoundingClientRect();
       const to = nav.getBoundingClientRect();
       const layout = logo.offsetWidth || from.width;

@@ -66,7 +66,7 @@ async function companyAdmin(request: Request) {
 
 export async function companyDashboard(request: Request) {
   const owner = await companyAdmin(request);
-  if ("error" in owner) return { status: owner.error.status, body: await owner.error.json() };
+  if ("error" in owner && owner.error) return { status: owner.error.status, body: await owner.error.json() };
   const pool = getPool();
   const [domains] = await pool.query<DomainRow[]>("SELECT domain, verified FROM domains WHERE company_id = ? ORDER BY domain ASC", [owner.company.id]);
   const [mailboxes] = await pool.query<MailboxRow[]>("SELECT used_gb, used_bytes FROM mailboxes WHERE company_id = ?", [owner.company.id]);

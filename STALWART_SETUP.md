@@ -175,20 +175,20 @@ const dkimResult = await configureStalwartDKIM(
 
 ## Step 7: Email Sending Integration
 
-Update your email sending API to use Stalwart:
+The app's `/api/mail/send` route can submit external messages through Stalwart SMTP when all `STALWART_SMTP_*` variables are configured. The SMTP account must be authorized in Stalwart to send as the authenticated employee's address; do not use the management API admin password as the SMTP password unless the server administrator explicitly configured that account for SMTP submission.
 
-```typescript
-import { sendStalwartEmail } from "@/lib/stalwart";
+Configure these values in the API server's environment (not in browser code or Postman):
 
-// In your send email API route
-const result = await sendStalwartEmail({
-  from: "info@surfsyncinfotech.in",
-  to: ["recipient@example.com"],
-  subject: "Test Email",
-  text: "This is a test email",
-  html: "<p>This is a test email</p>",
-});
+```env
+STALWART_SMTP_HOST=mail.surfsyncinfotech.xyz
+STALWART_SMTP_PORT=587
+STALWART_SMTP_USERNAME=your-authorized-smtp-account
+STALWART_SMTP_PASSWORD=your-smtp-password
 ```
+
+Port 587 uses STARTTLS, which the app requires. Port 465 uses implicit TLS. Messages to another app mailbox continue through the existing database-backed local flow. If SMTP variables are unset, external messages keep the current behavior: they are saved in Sent but not sent externally. If SMTP rejects a message, the API reports an error and leaves the saved Sent copy in place; check Stalwart logs before retrying because a network failure can make acceptance uncertain.
+
+An API success with `acceptedByMailServer: true` means Stalwart accepted the message for processing, not that the recipient's inbox received it. Verify delivery through Stalwart's logs and a recipient account you control.
 
 ## API Functions Available
 
@@ -203,7 +203,6 @@ The `lib/stalwart.ts` library provides these functions:
 | `updateStalwartPassword()` | Update mailbox password |
 | `getStalwartMailbox()` | Get mailbox information |
 | `configureStalwartDKIM()` | Configure DKIM for a domain |
-| `sendStalwartEmail()` | Send email via Stalwart |
 | `testStalwartConnection()` | Test Stalwart connection |
 
 ## Deployment Checklist
@@ -211,12 +210,12 @@ The `lib/stalwart.ts` library provides these functions:
 - [ ] Install Stalwart Mail Server on `mail.surfsyncinfotech.xyz`
 - [ ] Configure Stalwart with proper settings
 - [ ] Open firewall ports: 25, 587, 8080, 993
-- [ ] Set environment variables in `.env.local`
+- [ ] Set server-side environment variables in the API deployment
 - [ ] Test connection via `/api/admin/stalwart/test`
 - [ ] Integrate mailbox creation with Stalwart
 - [ ] Integrate password updates with Stalwart
 - [ ] Integrate DKIM configuration with Stalwart
-- [ ] Integrate email sending with Stalwart
+- [ ] Configure the SMTP account and `STALWART_SMTP_*` variables for outbound email
 - [ ] Test end-to-end email flow
 
 ## Troubleshooting
@@ -246,19 +245,9 @@ The `lib/stalwart.ts` library provides these functions:
 4. **Monitoring**: Monitor Stalwart logs for errors and issues
 5. **Scaling**: Stalwart can handle multiple domains and mailboxes
 
-## For Your Manager
+## Current Integration Status
 
-### Summary for Manager:
-
-1. **Stalwart Mail Server** needs to be installed on `mail.surfsyncinfotech.xyz`
-2. **API integration code** is already written and ready
-3. **Environment variables** need to be set in `.env.local`
-4. **DNS MX priority** needs to be fixed (waiting for approval)
-5. **After Stalwart is deployed**, email sending/receiving will work
-
-### Current Status:
-- ✅ Database schema updated with all PRD tables
-- ✅ Stalwart API client library created
-- ✅ Stalwart test endpoint created
-- ⏳ Stalwart server installation (needs to be done on mail.surfsyncinfotech.xyz)
-- ⏳ MX priority fix (waiting for manager approval)
+- External messages submitted to `/api/mail/send` use SMTP only when all `STALWART_SMTP_*` settings are present in the API server environment.
+- Messages between app mailboxes continue to use the existing database-backed path.
+- Creating mailboxes in Stalwart, synchronizing inbound messages from Stalwart, and changing Stalwart mailbox passwords are not wired into the app yet.
+- SMTP acceptance confirms the server accepted a message for processing; it does not guarantee delivery to the recipient's inbox.

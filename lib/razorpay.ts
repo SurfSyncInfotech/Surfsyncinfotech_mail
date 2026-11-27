@@ -42,14 +42,6 @@ export function verifyCheckoutSignature(orderId: string, paymentId: string, sign
   return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }
 
-export function verifyWebhookSignature(rawBody: string, signature: string | null) {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  if (!secret || !signature) return false;
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  if (expected.length !== signature.length) return false;
-  return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
-}
-
 export async function fetchPayment(paymentId: string) {
   const response = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, {
     headers: { Authorization: authHeader() },
